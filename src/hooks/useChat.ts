@@ -21,6 +21,7 @@ import {
   buildNextQuestions,
   isSpecReadyForLead,
 } from "@/lib/chat";
+import { randomId } from "@/lib/utils";
 
 const ROOT_MENU_MESSAGE =
   "Выберите направление — так я быстрее дам точный ответ:";
@@ -74,7 +75,7 @@ export function useChat() {
   const [menu, setMenu] = useState<MenuLevel>("root");
   const [topic, setTopic] = useState<ChatTopic>("unknown");
   const [messages, setMessages] = useState<ChatMessage[]>([
-    { id: crypto.randomUUID(), role: "Ассистент", text: CHAT_INITIAL_MESSAGE },
+    { id: randomId(), role: "Ассистент", text: CHAT_INITIAL_MESSAGE },
   ]);
   const [input, setInput] = useState("");
   const [techSpec, setTechSpec] = useState<TechSpec>({});
@@ -85,16 +86,20 @@ export function useChat() {
   const [sendingLead, setSendingLead] = useState(false);
 
   const visitorIdRef = useRef<string>("");
-  const sessionIdRef = useRef<string>(crypto.randomUUID());
+  const sessionIdRef = useRef<string>(randomId());
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
-    const saved = localStorage.getItem(VISITOR_ID_STORAGE_KEY);
-    if (saved) visitorIdRef.current = saved;
-    else {
-      const id = crypto.randomUUID();
-      visitorIdRef.current = id;
-      localStorage.setItem(VISITOR_ID_STORAGE_KEY, id);
+    try {
+      const saved = localStorage.getItem(VISITOR_ID_STORAGE_KEY);
+      if (saved) visitorIdRef.current = saved;
+      else {
+        const id = randomId();
+        visitorIdRef.current = id;
+        localStorage.setItem(VISITOR_ID_STORAGE_KEY, id);
+      }
+    } catch {
+      visitorIdRef.current = randomId();
     }
   }, []);
 
@@ -108,7 +113,7 @@ export function useChat() {
   const addMessage = useCallback((roleName: string, text: string) => {
     setMessages((prev) => [
       ...prev,
-      { id: crypto.randomUUID(), role: roleName, text },
+      { id: randomId(), role: roleName, text },
     ]);
   }, []);
 
@@ -125,7 +130,7 @@ export function useChat() {
     ) => {
       const speedMs = clamp(opts?.speedMs ?? 14, 6, 30);
       const initialDelayMs = clamp(opts?.initialDelayMs ?? 120, 0, 800);
-      const id = crypto.randomUUID();
+      const id = randomId();
       setMessages((prev) => [...prev, { id, role: "Ассистент", text: "" }]);
       setAvatarState("answering");
       let i = 0;

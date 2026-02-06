@@ -7,20 +7,23 @@ interface Props {
 interface State {
   hasError: boolean;
   error: Error | null;
+  errorInfo: ErrorInfo | null;
 }
 
 class ErrorBoundary extends Component<Props, State> {
   public state: State = {
     hasError: false,
     error: null,
+    errorInfo: null,
   };
 
-  public static getDerivedStateFromError(error: Error): State {
+  public static getDerivedStateFromError(error: Error): Partial<State> {
     return { hasError: true, error };
   }
 
   public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    console.error("Uncaught error:", error, errorInfo);
+    this.setState({ errorInfo });
+    console.error("[ErrorBoundary] Ошибка приложения:", error.message, error, errorInfo);
   }
 
   public render() {
@@ -52,6 +55,18 @@ class ErrorBoundary extends Component<Props, State> {
               >
                 Вернуться на главную
               </button>
+              {(this.state.error?.message || this.state.errorInfo) && (
+                <details className="mt-8 text-left max-w-2xl mx-auto">
+                  <summary className="cursor-pointer text-sm text-muted-foreground hover:text-foreground">
+                    Подробности ошибки (для отладки)
+                  </summary>
+                  <pre className="mt-2 p-4 rounded bg-muted text-muted-foreground text-xs overflow-auto">
+                    {this.state.error?.message}
+                    {this.state.error?.stack && `\n\n${this.state.error.stack}`}
+                    {this.state.errorInfo?.componentStack && `\n\n${this.state.errorInfo.componentStack}`}
+                  </pre>
+                </details>
+              )}
             </div>
           </div>
         </div>
